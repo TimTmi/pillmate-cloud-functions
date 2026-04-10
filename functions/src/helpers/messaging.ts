@@ -1,5 +1,5 @@
-import { messaging } from "../config/firebase";
-import { getProfileTokens } from "./tokens";
+import {messaging} from "../config/firebase";
+import {getProfileTokens} from "./tokens";
 
 export type MessageData = Record<string, string | number | boolean>;
 

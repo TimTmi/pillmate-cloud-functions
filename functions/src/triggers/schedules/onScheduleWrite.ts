@@ -1,13 +1,16 @@
-import * as functions from "firebase-functions";
-import { sendToProfile } from "../../helpers/messaging";
-import { EVENTS } from "../../types/events";
+import {onDocumentWritten} from "firebase-functions/v2/firestore";
+import {sendToProfile} from "../../helpers/messaging";
+import {EVENTS, EventType} from "../../types/events";
 
-export const onScheduleWrite = functions.firestore
-  .document("profiles/{profileId}/schedules/{scheduleId}")
-  .onWrite(async (change, context) => {
-    const { profileId, scheduleId } = context.params;
+export const onScheduleWrite = onDocumentWritten(
+  "profiles/{profileId}/schedules/{scheduleId}",
+  async (event) => {
+    const {profileId, scheduleId} = event.params;
+    const change = event.data;
 
-    let type = EVENTS.SCHEDULE_UPDATED;
+    if (!change) return;
+
+    let type: EventType = EVENTS.SCHEDULE_UPDATED;
 
     if (!change.after.exists) {
       type = EVENTS.SCHEDULE_DELETED;
@@ -15,8 +18,6 @@ export const onScheduleWrite = functions.firestore
       type = EVENTS.SCHEDULE_CREATED;
     }
 
-    await sendToProfile(profileId, {
-      type,
-      scheduleId,
-    });
-  });
+    await sendToProfile(profileId, {type, scheduleId});
+  },
+);
